@@ -297,6 +297,9 @@ External library support:
   --enable-opengl          enable OpenGL rendering [no]
   --enable-openssl         enable openssl, needed for https support
                            if gnutls or libtls is not used [no]
+
+  --disable-pplusenc       disable P.Plus encoder support [autodetect]
+
   --disable-sndio          disable sndio support [autodetect]
   --disable-schannel       disable SChannel SSP, needed for TLS support on
                            Windows if openssl and gnutls are not used [autodetect]
@@ -1620,6 +1623,7 @@ EXTERNAL_AUTODETECT_LIBRARY_LIST="
     libxcb_shape
     libxcb_xfixes
     lzma
+    pplusenc
     schannel
     sdl2
     securetransport
@@ -2672,6 +2676,10 @@ opus_encoder_select="audio_frame_queue mdct15"
 png_decoder_deps="zlib"
 png_encoder_deps="zlib"
 png_encoder_select="llvidencdsp"
+pplusenc_deps_any="libdl LoadLibrary"
+pplusenc_x264_encoder_deps="pplusenc"
+pplusenc_h264_encoder_deps="pplusenc"
+pplusenc_hevc_encoder_deps="pplusenc"
 prores_decoder_select="blockdsp idctdsp"
 prores_encoder_select="fdctdsp"
 qcelp_decoder_select="lsp"
@@ -4183,6 +4191,7 @@ msvc_common_flags(){
             -march=*)             ;;
             -lz)                  echo zlib.lib ;;
             -lx264)               echo libx264.lib ;;
+            -lx265)               echo libx265.lib ;;
             -lstdc++)             ;;
             -l*)                  echo ${flag#-l}.lib ;;
             -LARGEADDRESSAWARE)   echo $flag ;;
@@ -6023,6 +6032,12 @@ enabled libopus           && {
         require_pkg_config libopus opus opus_multistream.h opus_multistream_surround_encoder_create
     }
 }
+
+if ! disabled pplusenc; then
+    disable pplusenc
+    check_header "stdint.h PPlusEnc2_IL.h" && enable pplusenc
+fi
+
 enabled libpulse          && require_pkg_config libpulse libpulse pulse/pulseaudio.h pa_context_new
 enabled librsvg           && require_pkg_config librsvg librsvg-2.0 librsvg-2.0/librsvg/rsvg.h rsvg_handle_render_cairo
 enabled librtmp           && require_pkg_config librtmp librtmp librtmp/rtmp.h RTMP_Socket
@@ -6081,8 +6096,12 @@ enabled libx264           && { check_pkg_config libx264 x264 "stdint.h x264.h" x
                                  warn "using libx264 without pkg-config"; } } &&
                              require_cpp_condition x264.h "X264_BUILD >= 118" &&
                              check_cpp_condition libx262 x264.h "X264_MPEG2"
-enabled libx265           && require_pkg_config libx265 x265 x265.h x265_api_get &&
+
+enabled libx265           && { check_pkg_config libx265 x265 "x265.h" x265_api_get ||
+                               { require libx265 "x265.h" x265_api_get -lx265 &&
+                               warn "using libx265 without pkg-config"; } } &&
                              require_cpp_condition x265.h "X265_BUILD >= 68"
+
 enabled libxavs           && require libxavs "stdint.h xavs.h" xavs_encoder_encode "-lxavs $pthreads_extralibs $libm_extralibs"
 enabled libxvid           && require libxvid xvid.h xvid_global -lxvidcore
 enabled libzimg           && require_pkg_config libzimg "zimg >= 2.7.0" zimg.h zimg_get_api_version

@@ -987,6 +987,9 @@ OBJS-$(CONFIG_LIBX265_ENCODER)            += libx265.o
 OBJS-$(CONFIG_LIBXAVS_ENCODER)            += libxavs.o
 OBJS-$(CONFIG_LIBXVID_ENCODER)            += libxvid.o libxvid_rc.o
 OBJS-$(CONFIG_LIBZVBI_TELETEXT_DECODER)   += libzvbi-teletextdec.o ass.o
+OBJS-$(CONFIG_PPLUSENC_X264_ENCODER)      += pplusenc.o
+OBJS-$(CONFIG_PPLUSENC_H264_ENCODER)      += pplusenc.o
+OBJS-$(CONFIG_PPLUSENC_HEVC_ENCODER)      += pplusenc.o
 
 # parsers
 OBJS-$(CONFIG_AAC_LATM_PARSER)         += latm_parser.o
